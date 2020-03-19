@@ -21,19 +21,20 @@ module.exports = function rollupPluginImportAlias(options) {
 	var extensions = (options.Extensions || ['js']);
 	var paths = transformPaths(options.Paths || {});
 	return {
-		resolveId: function(importee, importer) {
+		resolveId: function (importee, importer) {
 			var extCount = extensions.length;
 			for (var entry of paths) {
 				if (importee.substring(0, entry.key.length) === entry.key) {
 					var directory = importee.replace(entry.key, entry.path);
-					var ext, absolute;
+					var ext, absolute, hasExt;
 					for (var i = 0; i < extCount; i++) {
 						ext = extensions[i];
-						absolute = directory + '.' + ext;
-						
+						hasExt = directory.endsWith('.' + ext);
+						absolute = hasExt ? directory : (directory + '.' + ext);
+
 						if (fs.existsSync(absolute)) {
 							return path.normalize(absolute);
-						
+
 						} else if (fs.existsSync(directory) && fs.statSync(directory).isDirectory()) {
 							for (var j = 0; j < extCount; j++) {
 								ext = extensions[i];
